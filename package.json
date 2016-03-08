@@ -1,0 +1,33 @@
+{
+  "name": "swim-hashring",
+  "version": "0.0.1",
+  "description": "consistent hashring based on swim, for node.js ",
+  "main": "hashring.js",
+  "scripts": {
+    "test": "standard && tap test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mcollina/swim-hashring.git"
+  },
+  "keywords": [
+    "swim",
+    "consistent",
+    "hashring"
+  ],
+  "author": "Matteo Collina <hello@matteocollina.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mcollina/swim-hashring/issues"
+  },
+  "homepage": "https://github.com/mcollina/swim-hashring#readme",
+  "devDependencies": {
+    "pre-commit": "^1.1.2",
+    "standard": "^6.0.8",
+    "tap": "^5.7.0"
+  },
+  "dependencies": {
+    "farmhash": "^1.1.0",
+    "swim": "^0.3.0"
+  }
+}
