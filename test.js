@@ -2,30 +2,52 @@
 
 const test = require('tap').test
 const hashring = require('.')
+const steed = require('steed')
 
-function opts () {
-  return {
-    joinTimeout: 20
+function boot (t, root, cb) {
+  if (typeof root === 'function') {
+    cb = root
+    root = null
   }
+  const opts = {
+    joinTimeout: 200
+  }
+  if (root) {
+    opts.base = [root.whoami()]
+  }
+  const peer = hashring(opts)
+  t.setMaxListeners(100)
+  t.tearDown(peer.close.bind(peer))
+  peer.on('error', t.fail.bind(t))
+  peer.on('up', () => {
+    t.pass('peer up')
+    cb(peer)
+  })
+}
+
+function bootN (t, num, cb) {
+  num = num - 1
+  boot(t, (root) => {
+    const peers = new Array(num)
+    steed.map(peers, (peer, cb) => {
+      boot(t, root, (peer) => cb(null, peer))
+    }, (err, peers) => {
+      t.error(err)
+      if (err) {
+        return
+      }
+      peers.unshift(root)
+      cb(peers)
+    })
+  })
 }
 
 test('two peer lookup', (t) => {
   t.plan(7)
 
-  const i1 = hashring(opts())
   const key = 'hello'
-  t.tearDown(i1.close.bind(i1))
-  i1.on('up', () => {
-    t.pass('i1 up')
-    const i2 = hashring({
-      joinTimeout: 20,
-      base: [i1.whoami()]
-    })
-    t.tearDown(i2.close.bind(i2))
-
-    i2.on('up', () => {
-      t.pass('i2 up')
-
+  boot(t, (i1) => {
+    boot(t, i1, (i2) => {
       let v1 = i1.lookup(key)
       let v2 = i2.lookup(key)
       t.deepEqual(v1, v2, 'both instances look up correctly')
@@ -42,5 +64,19 @@ test('two peer lookup', (t) => {
         t.fail('value does not match any known peer')
       }
     })
+  })
+})
+
+test('10 peers', (t) => {
+  t.plan(21)
+
+  const key = 'hello'
+  bootN(t, 10, (peers) => {
+    const root = peers[0]
+    let value = root.lookup(key)
+    for (let i = 0; i < peers.length; i++) {
+      let current = peers[i].lookup(key)
+      t.deepEqual(value.id, current.id, 'both instances look up correctly')
+    }
   })
 })
