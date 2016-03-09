@@ -24,9 +24,12 @@
   "devDependencies": {
     "pre-commit": "^1.1.2",
     "standard": "^6.0.8",
-    "tap": "^5.7.0"
+    "tap": "^5.7.0",
+    "xtend": "^4.0.1"
   },
   "dependencies": {
+    "baseswim": "^0.2.0",
+    "binary-search-bounds": "^2.0.3",
     "farmhash": "^1.1.0",
     "swim": "^0.3.0"
   }
