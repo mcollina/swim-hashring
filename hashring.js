@@ -12,9 +12,13 @@ function Hashring (opts) {
   }
 
   opts = opts || {}
+  opts.ringname = opts.ringname || 'hashring'
   opts.local = opts.local || {}
   opts.replicaPoints = opts.replicaPoints || 100
+  opts.local.meta = opts.local.meta || {}
+  opts.local.meta.ringname = opts.ringname
 
+  this.ringname = opts.local.meta.ringname
   this._mymeta = null
 
   this._peers = []
@@ -31,15 +35,27 @@ function Hashring (opts) {
     this.emit('up')
   })
   this.swim.on('peerUp', (peer) => {
+    if (!peer.meta || peer.meta.ringname !== this.ringname) {
+      return
+    }
+
     let meta = {
       id: peer.host,
       meta: peer.meta,
       points: genReplicaPoints(peer.host, opts.replicaPoints)
     }
     this._add(meta)
+    this.emit('peerUp', meta)
   })
   this.swim.on('peerDown', (peer) => {
+    if (!peer.meta || peer.meta.ringname !== this.ringname) {
+      return
+    }
     this._remove(peer)
+    this.emit('peerDown', {
+      id: peer.host,
+      meta: peer.meta
+    })
   })
 }
 

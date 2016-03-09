@@ -3,6 +3,8 @@
 const test = require('tap').test
 const hashring = require('.')
 const steed = require('steed')
+const baseswim = require('baseswim')
+const farmhash = require('farmhash')
 
 function boot (t, root, cb) {
   if (typeof root === 'function') {
@@ -10,7 +12,7 @@ function boot (t, root, cb) {
     root = null
   }
   const opts = {
-    joinTimeout: 200
+    joinTimeout: 1000
   }
   if (root) {
     opts.base = [root.whoami()]
@@ -78,5 +80,24 @@ test('10 peers', (t) => {
       let current = peers[i].lookup(key)
       t.deepEqual(value.id, current.id, 'both instances look up correctly')
     }
+  })
+})
+
+test('is compatible with swim', (t) => {
+  t.plan(11)
+  boot(t, (root) => {
+    const peer = baseswim({
+      joinTimeout: 200,
+      base: [root.whoami()]
+    })
+
+    t.tearDown(peer.leave.bind(peer))
+    peer.on('up', () => {
+      let key = 'hello'
+      for (let i = 0; i < 10; i++) {
+        t.deepEqual(root.lookup(key), root.mymeta(), 'key is matched by root')
+        key += farmhash.hash32(key)
+      }
+    })
   })
 })
