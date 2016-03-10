@@ -5,6 +5,7 @@ const EE = require('events')
 const inherits = require('util').inherits
 const bsb = require('binary-search-bounds')
 const farmhash = require('farmhash')
+const maxInt = Math.pow(2, 32) - 1
 
 function Hashring (opts) {
   if (!(this instanceof Hashring)) {
@@ -68,9 +69,36 @@ Hashring.prototype._add = function (data) {
       peer: data,
       point: points[i]
     }
-    this._peers.push(point)
+
+    // add a point to the array keeping it ordered
+    let index = bsb.gt(this._peers, point, sortPoints)
+    if (index < 0) {
+      index = this._peers.length
+    }
+
+    this._peers.splice(index, 0, point)
+    if (this._peers[index + 1] && this._peers[index + 1].peer.id === this.whoami()) {
+      let event = {
+        start: point.point,
+        end: this._peers[index + 1].point,
+        to: point.peer
+      }
+      this.emit('move', event)
+    } else if (!this._peers[index + 1] && this._peers[0] && this._peers[0].peer.id === this.whoami()) {
+      let event = {
+        start: point.point,
+        end: maxInt,
+        to: point.peer
+      }
+      this.emit('move', event)
+      event = {
+        start: 0,
+        end: this._peers[0].point,
+        to: point.peer
+      }
+      this.emit('move', event)
+    }
   }
-  this._peers.sort(sortPoints)
 }
 
 Hashring.prototype._remove = function (data) {
@@ -111,13 +139,13 @@ function genReplicaPoints (id, max) {
 }
 
 function sortPoints (a, b) {
-  if (a.point > b.point) {
-    return 1
-  } else if (b.point > a.point) {
-    return -1
-  } else {
-    return 0
+  let result = 0
+  if (a.point < b.point) {
+    result = -1
+  } else if (a.point > b.point) {
+    result = 1
   }
+  return result
 }
 
 module.exports = Hashring

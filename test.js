@@ -5,6 +5,7 @@ const hashring = require('.')
 const steed = require('steed')
 const baseswim = require('baseswim')
 const farmhash = require('farmhash')
+const maxInt = Math.pow(2, 32) - 1
 
 function boot (t, root, cb) {
   if (typeof root === 'function') {
@@ -25,6 +26,7 @@ function boot (t, root, cb) {
     t.pass('peer up')
     cb(peer)
   })
+  return peer
 }
 
 function bootN (t, num, cb) {
@@ -98,6 +100,32 @@ test('is compatible with swim', (t) => {
         t.deepEqual(root.lookup(key), root.mymeta(), 'key is matched by root')
         key += farmhash.hash32(key)
       }
+    })
+  })
+})
+
+test('move event', { timeout: 5000 }, (t) => {
+  let events = 0
+  let moved = 0
+  boot(t, (i1) => {
+    let receivedPeer
+    i1.on('move', (moveEvent) => {
+      t.ok(Number.isInteger(moveEvent.start), 'start exists')
+      t.ok(Number.isInteger(moveEvent.end), 'end exists')
+      t.ok(moveEvent.start < moveEvent.end, 'start < end')
+      t.ok(moveEvent.to, 'peer exists')
+      receivedPeer = moveEvent.to
+      moved += moveEvent.end - moveEvent.start
+      events++
+    })
+    boot(t, i1, (i2) => {
+      t.deepEqual(receivedPeer, i2.mymeta(), 'peer matches')
+      t.pass('got ' + events + ' moves')
+      t.ok(events > 10, 'some overlap')
+      let movedPercent = Math.round(moved / maxInt * 1000) / 1000
+      t.ok(movedPercent >= 0.40, 'at least 40% is reallocated, got: ' + movedPercent)
+      t.ok(movedPercent <= 1, 'we reallocate at most 100%, got: ' + movedPercent)
+      t.end()
     })
   })
 })
