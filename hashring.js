@@ -19,6 +19,7 @@ function Hashring (opts) {
   opts.local.meta = opts.local.meta || {}
   opts.local.meta.ringname = opts.ringname
 
+  this.hash = opts.hashFunc || farmhash.hash32
   this.ringname = opts.local.meta.ringname
   this._mymeta = null
 
@@ -106,10 +107,20 @@ Hashring.prototype._remove = function (data) {
 }
 
 Hashring.prototype.lookup = function (key) {
+  let point = 0
+  if (!Number.isInteger(key)) {
+    point = this.hash(key)
+  } else {
+    point = key
+  }
   var index = bsb.gt(this._peers, {
-    point: farmhash.hash32(key)
+    point: point
   }, sortPoints)
   return this._peers[index].peer
+}
+
+Hashring.prototype.allocatedToMe = function (key) {
+  return this.lookup(key).id === this.whoami()
 }
 
 Hashring.prototype.close = function (cb) {

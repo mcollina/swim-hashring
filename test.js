@@ -47,7 +47,7 @@ function bootN (t, num, cb) {
 }
 
 test('two peer lookup', (t) => {
-  t.plan(7)
+  t.plan(10)
 
   const key = 'hello'
   boot(t, (i1) => {
@@ -59,11 +59,16 @@ test('two peer lookup', (t) => {
       t.ok(v1, 'value is not null')
       t.ok(i1.mymeta(), 'i1 metadata is not null')
       t.ok(i2.mymeta(), 'i2 metadata is not null')
+      t.deepEqual(i1.lookup(key), i1.lookup(i1.hash(key)), 'lookup by hash')
 
       if (v1.id === i1.whoami()) {
         t.deepEqual(v1, i1.mymeta(), 'hello is matched by i1')
+        t.ok(i1.allocatedToMe(key), 'key is allocated to i1')
+        t.notOk(i2.allocatedToMe(key), 'key is not allocated to i2')
       } else if (v1.id === i2.whoami()) {
         t.deepEqual(v1, i2.mymeta(), 'hello is matched by i2')
+        t.ok(i2.allocatedToMe(key), 'key is allocated to i2')
+        t.notOk(i1.allocatedToMe(key), 'key is not allocated to i1')
       } else {
         t.fail('value does not match any known peer')
       }
