@@ -1,7 +1,7 @@
 {
   "name": "swim-hashring",
-  "version": "0.0.1",
-  "description": "consistent hashring based on swim, for node.js ",
+  "version": "0.1.0",
+  "description": "gossip based application sharding",
   "main": "hashring.js",
   "scripts": {
     "test": "standard && tap test.js"
@@ -13,7 +13,9 @@
   "keywords": [
     "swim",
     "consistent",
-    "hashring"
+    "hashring",
+    "gossip",
+    "sharding"
   ],
   "author": "Matteo Collina <hello@matteocollina.com>",
   "license": "MIT",

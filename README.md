@@ -7,7 +7,7 @@ to route your requests accordingly.
 
 **swim-hashring** is a library that implements a distributed sharding system using a gossip membership protocol ([swim](http://npm.im/swim)) and a [consistent hash ring](http://www.martinbroadhurst.com/Consistent-Hash-Ring.html) based on [farmhash](http://npm.im/farmhash).
 
-This library does not assume any particular application platform.
+This library does not assume any particular application protocol.
 
 <a name="install"></a>
 ## Install
