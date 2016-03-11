@@ -16,7 +16,7 @@ function Hashring (opts) {
   opts.ringname = opts.ringname || 'hashring'
   opts.local = opts.local || {}
   opts.replicaPoints = opts.replicaPoints || 100
-  opts.local.meta = opts.local.meta || {}
+  opts.local.meta = opts.local.meta || opts.meta || {}
   opts.local.meta.ringname = opts.ringname
 
   this.hash = opts.hashFunc || farmhash.hash32
