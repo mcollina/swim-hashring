@@ -134,3 +134,29 @@ test('move event', { timeout: 5000 }, (t) => {
     })
   })
 })
+
+test('client', (t) => {
+  t.plan(4)
+
+  boot(t, (i1) => {
+    boot(t, i1, (i2) => {
+      const client = hashring({
+        client: true,
+        joinTimeout: 1000,
+        base: [i1.whoami(), i2.whoami()]
+      })
+      t.tearDown(client.close.bind(client))
+      client.on('error', t.fail.bind(t))
+      client.on('up', () => {
+        t.pass('client up')
+        for (var i = 0; i < maxInt; i += 1000) {
+          if (client.allocatedToMe(i) || i1.lookup(i).id === client.whoami()) {
+            t.fail('data allocated to a client')
+            return
+          }
+        }
+        t.pass('no errors')
+      })
+    })
+  })
+})

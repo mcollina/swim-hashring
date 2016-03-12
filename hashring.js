@@ -18,6 +18,7 @@ function Hashring (opts) {
   opts.replicaPoints = opts.replicaPoints || 100
   opts.local.meta = opts.local.meta || opts.meta || {}
   opts.local.meta.ringname = opts.ringname
+  opts.local.meta.client = opts.client
 
   this.hash = opts.hashFunc || farmhash.hash32
   this.ringname = opts.local.meta.ringname
@@ -28,16 +29,18 @@ function Hashring (opts) {
   this.swim = baseswim(opts)
   this.swim.on('up', () => {
     var id = this.swim.whoami()
-    this._mymeta = {
-      id: id,
-      points: genReplicaPoints(id, opts.replicaPoints),
-      meta: opts.local.meta
+    if (!opts.client) {
+      this._mymeta = {
+        id: id,
+        points: genReplicaPoints(id, opts.replicaPoints),
+        meta: opts.local.meta
+      }
+      this._add(this._mymeta)
     }
-    this._add(this._mymeta)
     this.emit('up')
   })
   this.swim.on('peerUp', (peer) => {
-    if (!peer.meta || peer.meta.ringname !== this.ringname) {
+    if (!peer.meta || peer.meta.ringname !== this.ringname || peer.meta.client) {
       return
     }
 
@@ -50,7 +53,7 @@ function Hashring (opts) {
     this.emit('peerUp', meta)
   })
   this.swim.on('peerDown', (peer) => {
-    if (!peer.meta || peer.meta.ringname !== this.ringname) {
+    if (!peer.meta || peer.meta.ringname !== this.ringname || peer.meta.client) {
       return
     }
     const meta = {

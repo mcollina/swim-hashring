@@ -49,6 +49,8 @@ Options:
   on the swim network. Randomly picked if not specified.
 * `base`: an array of nodes that will be used to boostrap the swim
   network. The value is what is returned by [`whomai()`](#whomai).
+* `client`: if you are writing an hashring client rather than a normal
+  peer. Defaults to `false`.
 
 Events:
 
