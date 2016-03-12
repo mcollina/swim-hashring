@@ -53,11 +53,12 @@ function Hashring (opts) {
     if (!peer.meta || peer.meta.ringname !== this.ringname) {
       return
     }
-    this._remove(peer)
-    this.emit('peerDown', {
+    const meta = {
       id: peer.host,
       meta: peer.meta
-    })
+    }
+    this._remove(meta)
+    this.emit('peerDown', meta)
   })
 }
 
@@ -103,7 +104,7 @@ Hashring.prototype._add = function (data) {
 }
 
 Hashring.prototype._remove = function (data) {
-  this._peers = this._peers.filter((peer) => peer.data.id === data.id)
+  this._peers = this._peers.filter((peer) => peer.peer.id === data.id)
 }
 
 Hashring.prototype.lookup = function (key) {
@@ -116,6 +117,9 @@ Hashring.prototype.lookup = function (key) {
   var index = bsb.gt(this._peers, {
     point: point
   }, sortPoints)
+  if (index === this._peers.length) {
+    index = 0
+  }
   return this._peers[index].peer
 }
 
