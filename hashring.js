@@ -68,7 +68,7 @@ function Hashring (opts) {
 inherits(Hashring, EE)
 
 Hashring.prototype._add = function (data) {
-  let points = data.points
+  let points = data.points.sort()
   for (let i = 0; i < points.length; i++) {
     let point = {
       peer: data,
@@ -77,37 +77,95 @@ Hashring.prototype._add = function (data) {
 
     // add a point to the array keeping it ordered
     let index = bsb.gt(this._peers, point, sortPoints)
-    if (index < 0) {
-      index = this._peers.length
-    }
 
-    this._peers.splice(index, 0, point)
-    if (this._peers[index + 1] && this._peers[index + 1].peer.id === this.whoami()) {
-      let event = {
-        start: point.point,
-        end: this._peers[index + 1].point,
-        to: point.peer
+    let before
+    if (index === 0) {
+      before = this._peers[this._peers.length - 1]
+      if (before && this._peers[0] && this._peers[0].peer.id === this.whoami()) {
+        let event = {
+          start: before.point,
+          end: maxInt,
+          to: point.peer
+        }
+        this.emit('move', event)
+
+        event = {
+          start: 0,
+          end: point.point,
+          to: point.peer
+        }
+        this.emit('move', event)
       }
-      this.emit('move', event)
-    } else if (!this._peers[index + 1] && this._peers[0] && this._peers[0].peer.id === this.whoami()) {
-      let event = {
-        start: point.point,
-        end: maxInt,
-        to: point.peer
+    } else if (index === this._peers.length) {
+      before = this._peers[this._peers.length - 1]
+      if (this._peers[0].peer.id === this.whoami()) {
+        let event = {
+          start: before.point,
+          end: point.point,
+          to: point.peer
+        }
+        this.emit('move', event)
       }
-      this.emit('move', event)
-      event = {
-        start: 0,
-        end: this._peers[0].point,
-        to: point.peer
+    } else {
+      before = this._peers[index - 1]
+
+      if (this._peers[index].peer.id === this.whoami()) {
+        let event = {
+          start: before.point,
+          end: point.point,
+          to: point.peer
+        }
+        this.emit('move', event)
       }
-      this.emit('move', event)
     }
+    this._peers.splice(index, 0, point)
   }
 }
 
 Hashring.prototype._remove = function (data) {
-  this._peers = this._peers.filter((peer) => peer.peer.id === data.id)
+  let prevRemoved
+  let lastStart = this._peers[this._peers.length - 1].point
+  this._peers = this._peers.filter((point) => {
+    const toRemove = point.peer.id === data.id
+    if (prevRemoved && !toRemove && point.peer.id === this.whoami()) {
+      let event
+
+      if (lastStart > prevRemoved.point) {
+        event = {
+          start: lastStart,
+          end: maxInt,
+          from: prevRemoved.peer
+        }
+        lastStart = 0
+        this.emit('steal', event)
+      }
+
+      event = {
+        start: lastStart,
+        end: prevRemoved.point,
+        from: prevRemoved.peer
+      }
+      prevRemoved = undefined
+      this.emit('steal', event)
+    }
+
+    // manage state for the next round
+    if (toRemove) {
+      prevRemoved = point
+    } else {
+      lastStart = point.point
+    }
+
+    return !toRemove
+  })
+
+  if (prevRemoved && this._peers[0].peer.id === this.whoami()) {
+    this.emit('steal', {
+      start: lastStart,
+      end: prevRemoved.point,
+      from: prevRemoved.peer
+    })
+  }
 }
 
 Hashring.prototype.lookup = function (key) {
@@ -117,11 +175,11 @@ Hashring.prototype.lookup = function (key) {
   } else {
     point = key
   }
-  var index = bsb.gt(this._peers, {
+  let index = bsb.lt(this._peers, {
     point: point
   }, sortPoints)
-  if (index === this._peers.length) {
-    index = 0
+  if (index === -1) {
+    index = this._peers.length - 1
   }
   return this._peers[index].peer
 }

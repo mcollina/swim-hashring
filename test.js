@@ -160,3 +160,33 @@ test('client', (t) => {
     })
   })
 })
+
+test('steal event', { timeout: 5000 }, (t) => {
+  let stolen = 0
+  let moved = 0
+  boot(t, (i1) => {
+    i1.on('move', (moveEvent) => {
+      moved += moveEvent.end - moveEvent.start
+    })
+    boot(t, i1, (i2) => {
+      i1.on('steal', (stealEvent) => {
+        t.ok(Number.isInteger(stealEvent.start), 'start exists')
+        t.ok(Number.isInteger(stealEvent.end), 'end exists')
+        t.ok(stealEvent.start < stealEvent.end, 'start < end')
+        t.ok(stealEvent.from, 'peer exists')
+        t.deepEqual(i2.mymeta(), stealEvent.from, 'peer matches')
+        stolen += stealEvent.end - stealEvent.start
+      })
+      i1.on('peerDown', () => {
+        let stolenPercent = Math.round(stolen / maxInt * 1000) / 1000
+        t.ok(stolenPercent >= 0.40, 'at least 40% is reallocated, got: ' + stolenPercent)
+        t.ok(stolenPercent <= 1, 'we reallocate at most 100%, got: ' + stolenPercent)
+        const difference = stolen - moved
+        t.equal(difference, 0, 'the difference between stolen and moved')
+        t.equal(stolen, moved, 'same amount of the ring is stolen and moved')
+        t.end()
+      })
+      i2.close()
+    })
+  })
+})
