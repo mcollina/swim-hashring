@@ -68,6 +68,7 @@ function Hashring (opts) {
 inherits(Hashring, EE)
 
 Hashring.prototype._add = function (data) {
+  const myid = this.whoami()
   let points = data.points.sort()
   for (let i = 0; i < points.length; i++) {
     let entry = {
@@ -81,7 +82,7 @@ Hashring.prototype._add = function (data) {
     let before
     if (index === 0) {
       before = this._entries[this._entries.length - 1]
-      if (before && this._entries[0] && this._entries[0].peer.id === this.whoami()) {
+      if (before && this._entries[0] && this._entries[0].peer.id === myid) {
         let event = {
           start: before.point,
           end: maxInt,
@@ -98,7 +99,7 @@ Hashring.prototype._add = function (data) {
       }
     } else if (index === this._entries.length) {
       before = this._entries[this._entries.length - 1]
-      if (this._entries[0].peer.id === this.whoami()) {
+      if (this._entries[0].peer.id === myid) {
         let event = {
           start: before.point,
           end: entry.point,
@@ -109,7 +110,7 @@ Hashring.prototype._add = function (data) {
     } else {
       before = this._entries[index - 1]
 
-      if (this._entries[index].peer.id === this.whoami()) {
+      if (this._entries[index].peer.id === myid) {
         let event = {
           start: before.point,
           end: entry.point,
@@ -123,11 +124,12 @@ Hashring.prototype._add = function (data) {
 }
 
 Hashring.prototype._remove = function (data) {
+  const myid = this.whoami()
   let prevRemoved
   let lastStart = this._entries[this._entries.length - 1].point
   this._entries = this._entries.filter((entry) => {
     const toRemove = entry.peer.id === data.id
-    if (prevRemoved && !toRemove && entry.peer.id === this.whoami()) {
+    if (prevRemoved && !toRemove && entry.peer.id === myid) {
       let event
 
       if (lastStart > prevRemoved.point) {
@@ -153,13 +155,16 @@ Hashring.prototype._remove = function (data) {
     if (toRemove) {
       prevRemoved = entry
     } else {
+      // needed if we the stolen arch does not
+      // belong to the current peer
+      prevRemoved = undefined
       lastStart = entry.point
     }
 
     return !toRemove
   })
 
-  if (prevRemoved && this._entries[0].peer.id === this.whoami()) {
+  if (prevRemoved && this._entries[0].peer.id === myid) {
     this.emit('steal', {
       start: lastStart,
       end: prevRemoved.point,
