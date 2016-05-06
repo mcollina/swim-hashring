@@ -57,8 +57,10 @@ Events:
 * `'up'`: when the node is up and running
 * `'peerUp'`: when a peer that is part of the hashring gets online
 * `'peerDown'`: when a peer that is part of the hashring gets offline
-* `'move'`: when a part of the hashring gets moved from the current peer
+* `'move'`: when a part of the hashring is moved from the current peer
   to another peer, relevant keys `start`, `end`, `to`.
+* `'steal'`: when a part of the hashring is stolen by the current peer
+  from another peer, relevant keys `start`, `end`, `from`.
 
 <a name="lookup"></a>
 ### instance.lookup(key)
