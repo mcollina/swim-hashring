@@ -189,6 +189,40 @@ Hashring.prototype.lookup = function (key) {
   return this._entries[index].peer
 }
 
+Hashring.prototype.next = function (key, prev) {
+  let point = 0
+  if (!Number.isInteger(key)) {
+    point = this.hash(key)
+  } else {
+    point = key
+  }
+  let index = bsb.lt(this._entries, {
+    point: point
+  }, sortPoints)
+
+  prev = prev || []
+
+  let main = this.lookup(point).id
+
+  if (prev.indexOf(main) < 0) {
+    prev.push(main)
+  }
+
+  for (let i = index + 1; i < this._entries.length; i++) {
+    if (prev.indexOf(this._entries[i].peer.id) < 0) {
+      return this._entries[i].peer
+    }
+  }
+
+  for (let i = 0; i < index; i++) {
+    if (prev.indexOf(this._entries[i].peer.id) < 0) {
+      return this._entries[i].peer
+    }
+  }
+
+  return null
+}
+
 Hashring.prototype.allocatedToMe = function (key) {
   return this.lookup(key).id === this.whoami()
 }

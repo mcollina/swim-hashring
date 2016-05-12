@@ -190,3 +190,30 @@ test('steal event', { timeout: 5000 }, (t) => {
     })
   })
 })
+
+test('next peer lookup', (t) => {
+  t.plan(7)
+
+  const key = 'hello'
+  boot(t, (i1) => {
+    boot(t, i1, (i2) => {
+      let v1 = i1.lookup(key)
+      let next = i1.next(key)
+      t.ok(v1, 'value is not null')
+      t.ok(next, 'value is not null')
+
+      t.notEqual(v1.id, next.id, 'ids does not match')
+
+      if (v1.id === i1.whoami()) {
+        t.deepEqual(next, i2.mymeta(), 'hello.next is matched by i2')
+      } else if (v1.id === i2.whoami()) {
+        t.deepEqual(next, i1.mymeta(), 'hello.next is matched by i1')
+      } else {
+        t.fail('value does not match any known peer')
+      }
+
+      next = i1.next(key, [next.id])
+      t.notOk(next, 'no next for circuit breaking support')
+    })
+  })
+})

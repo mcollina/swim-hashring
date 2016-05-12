@@ -21,6 +21,7 @@ npm i swim-hashring -g
 
   * <a href="#constructor"><code><b>hashring()</b></code></a>
   * <a href="#lookup"><code>instance.<b>lookup()</b></code></a>
+  * <a href="#next"><code>instance.<b>next()</b></code></a>
   * <a href="#allocatedToMe"><code>instance.<b>allocatedToMe()</b></code></a>
   * <a href="#whoami"><code>instance.<b>whoami()</b></code></a>
   * <a href="#mymeta"><code>instance.<b>mymeta()</b></code></a>
@@ -68,6 +69,28 @@ Events:
 Lookup the peer handling a given `key`, which it can be a `String`, a
 `Buffer` or an integer. The integer needs to be the result of
 [`instance.hash(key`)](#hash).
+
+It returns:
+
+```js
+{
+  id: '192.168.0.1',
+  meta: {
+    // all metadata specified in
+  },
+  points: [
+    // n integers, where n is the number of replica points
+  ]
+}
+```
+
+<a name="next"></a>
+### instance.next(key[, skip])
+
+Lookup the next peer in the hashring for the given `key`. It is possible
+to specify a `skip` list of ids of peers. Because of the skip list, it
+is possible to implement a [circuit breaker](http://martinfowler.com/bliki/CircuitBreaker.html)
+to avoid messages that keeps flowing in infinite loops.
 
 It returns:
 
