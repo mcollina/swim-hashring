@@ -223,6 +223,10 @@ Hashring.prototype.next = function (key, prev) {
   return null
 }
 
+Hashring.prototype.peers = function () {
+  return this.swim.members()
+}
+
 Hashring.prototype.allocatedToMe = function (key) {
   return this.lookup(key).id === this.whoami()
 }

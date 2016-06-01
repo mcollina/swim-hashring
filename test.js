@@ -77,7 +77,7 @@ test('two peer lookup', (t) => {
 })
 
 test('10 peers', (t) => {
-  t.plan(21)
+  t.plan(23)
 
   const key = 'hello'
   bootN(t, 10, (peers) => {
@@ -87,6 +87,12 @@ test('10 peers', (t) => {
       let current = peers[i].lookup(key)
       t.deepEqual(value.id, current.id, 'both instances look up correctly')
     }
+    let computedPeers = root.peers()
+    t.equal(computedPeers.length, peers.length - 1, 'all peers minus one')
+    computedPeers = computedPeers.filter((peer) => {
+      return !peers.reduce((acc, p) => acc || p.id === peer.id, false)
+    })
+    t.equal(computedPeers.length, 0, 'all peers accounted for')
   })
 })
 

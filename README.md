@@ -130,6 +130,11 @@ depending if the given key has been allocated to this node or not.
 Hashes the given key using the same hash function used to calculate
 replica points. It returns an integer.
 
+<a name="peers"></a>
+### instance.peers()
+
+All the other peers, as computed by swim.
+
 <a name="close"></a>
 ### instance.close()
 
