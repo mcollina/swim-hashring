@@ -1,6 +1,6 @@
 {
   "name": "swim-hashring",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "gossip based application sharding",
   "main": "hashring.js",
   "scripts": {
