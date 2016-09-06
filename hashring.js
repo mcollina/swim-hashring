@@ -25,6 +25,7 @@ function Hashring (opts) {
   this._mymeta = null
 
   this._entries = []
+  this._peers = new Map()
 
   this.swim = baseswim(opts)
   this.swim.on('up', () => {
@@ -49,6 +50,7 @@ function Hashring (opts) {
       meta: peer.meta,
       points: genReplicaPoints(peer.host, opts.replicaPoints)
     }
+    this._peers.set(meta.id, meta)
     this._add(meta)
     this.emit('peerUp', meta)
   })
@@ -60,6 +62,7 @@ function Hashring (opts) {
       id: peer.host,
       meta: peer.meta
     }
+    this._peers.delete(meta.id)
     this._remove(meta)
     this.emit('peerDown', meta)
   })
@@ -223,8 +226,15 @@ Hashring.prototype.next = function (key, prev) {
   return null
 }
 
-Hashring.prototype.peers = function () {
-  return this.swim.members()
+Hashring.prototype.peers = function (myself) {
+  const results = []
+  for (let value of this._peers.values()) {
+    results.push(value)
+  }
+  if (myself) {
+    results.push(this.mymeta())
+  }
+  return results
 }
 
 Hashring.prototype.allocatedToMe = function (key) {

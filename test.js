@@ -76,6 +76,17 @@ test('two peer lookup', (t) => {
   })
 })
 
+test('peers()', (t) => {
+  t.plan(4)
+
+  boot(t, (i1) => {
+    boot(t, i1, (i2) => {
+      t.deepEqual(i1.peers(), [i2.mymeta()], 'peers matches')
+      t.deepEqual(i1.peers(true), [i2.mymeta(), i1.mymeta()], 'peers with myself matches')
+    })
+  })
+})
+
 test('10 peers', (t) => {
   t.plan(23)
 
@@ -90,7 +101,7 @@ test('10 peers', (t) => {
     let computedPeers = root.peers()
     t.equal(computedPeers.length, peers.length - 1, 'all peers minus one')
     computedPeers = computedPeers.filter((peer) => {
-      return !peers.reduce((acc, p) => acc || p.id === peer.id, false)
+      return !peers.reduce((acc, p) => acc || p.whoami() === peer.id, false)
     })
     t.equal(computedPeers.length, 0, 'all peers accounted for')
   })

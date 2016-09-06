@@ -23,6 +23,7 @@ npm i swim-hashring -g
   * <a href="#lookup"><code>instance.<b>lookup()</b></code></a>
   * <a href="#next"><code>instance.<b>next()</b></code></a>
   * <a href="#allocatedToMe"><code>instance.<b>allocatedToMe()</b></code></a>
+  * <a href="#peers"><code>instance.<b>peers()</b></code></a>
   * <a href="#whoami"><code>instance.<b>whoami()</b></code></a>
   * <a href="#mymeta"><code>instance.<b>mymeta()</b></code></a>
   * <a href="#hash"><code>instance.<b>hash()</b></code></a>
@@ -131,9 +132,11 @@ Hashes the given key using the same hash function used to calculate
 replica points. It returns an integer.
 
 <a name="peers"></a>
-### instance.peers()
+### instance.peers(myself)
 
-All the other peers, as computed by swim.
+All the other peers, in the format of [`lookup`](#lookup).
+if `myself` is set to `true`, the current instance is returned as
+well.
 
 <a name="close"></a>
 ### instance.close()
