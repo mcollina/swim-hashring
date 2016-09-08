@@ -70,9 +70,14 @@ function Hashring (opts) {
 
 inherits(Hashring, EE)
 
+function emitMove (that, event) {
+  that.emit('move', event)
+}
+
 Hashring.prototype._add = function (data) {
   const myid = this.whoami()
-  let points = data.points.sort()
+  const points = data.points.sort(intSort)
+  data.points = points
   for (let i = 0; i < points.length; i++) {
     let entry = {
       peer: data,
@@ -83,22 +88,29 @@ Hashring.prototype._add = function (data) {
     let index = bsb.gt(this._entries, entry, sortPoints)
 
     let before
-    if (index === 0) {
+    if (entry.peer.id === myid) {
+      // do nothing
+      // TODO
+    } else if (index === 0) {
       before = this._entries[this._entries.length - 1]
       if (before && this._entries[0] && this._entries[0].peer.id === myid) {
         let event = {
           start: before.point,
           end: maxInt,
-          to: entry.peer
+          to: entry.peer,
+          path: 'a1'
         }
-        this.emit('move', event)
+
+        process.nextTick(emitMove, this, event)
 
         event = {
           start: 0,
           end: entry.point,
-          to: entry.peer
+          to: entry.peer,
+          path: 'a2'
         }
-        this.emit('move', event)
+
+        process.nextTick(emitMove, this, event)
       }
     } else if (index === this._entries.length) {
       before = this._entries[this._entries.length - 1]
@@ -106,9 +118,11 @@ Hashring.prototype._add = function (data) {
         let event = {
           start: before.point,
           end: entry.point,
-          to: entry.peer
+          to: entry.peer,
+          path: 'b'
         }
-        this.emit('move', event)
+
+        process.nextTick(emitMove, this, event)
       }
     } else {
       before = this._entries[index - 1]
@@ -117,9 +131,11 @@ Hashring.prototype._add = function (data) {
         let event = {
           start: before.point,
           end: entry.point,
-          to: entry.peer
+          to: entry.peer,
+          path: 'c'
         }
-        this.emit('move', event)
+
+        process.nextTick(emitMove, this, event)
       }
     }
     this._entries.splice(index, 0, entry)
@@ -183,12 +199,14 @@ Hashring.prototype.lookup = function (key) {
   } else {
     point = key
   }
-  let index = bsb.lt(this._entries, {
+
+  let index = bsb.gt(this._entries, {
     point: point
   }, sortPoints)
-  if (index === -1) {
-    index = this._entries.length - 1
+  if (index === this._entries.length) {
+    index = 0
   }
+
   return this._entries[index].peer
 }
 
@@ -199,7 +217,7 @@ Hashring.prototype.next = function (key, prev) {
   } else {
     point = key
   }
-  let index = bsb.lt(this._entries, {
+  let index = bsb.gt(this._entries, {
     point: point
   }, sortPoints)
 
@@ -275,6 +293,16 @@ function sortPoints (a, b) {
     result = 1
   }
   return result
+}
+
+function intSort (a, b) {
+  if (a < b) {
+    return -1
+  } else if (a > b) {
+    return 1
+  } else {
+    return 0
+  }
 }
 
 module.exports = Hashring

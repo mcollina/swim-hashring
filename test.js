@@ -130,24 +130,33 @@ test('move event', { timeout: 5000 }, (t) => {
   let events = 0
   let moved = 0
   boot(t, (i1) => {
+    const i1id = i1.whoami()
     let receivedPeer
     i1.on('move', (moveEvent) => {
       t.ok(Number.isInteger(moveEvent.start), 'start exists')
       t.ok(Number.isInteger(moveEvent.end), 'end exists')
       t.ok(moveEvent.start < moveEvent.end, 'start < end')
       t.ok(moveEvent.to, 'peer exists')
+      const key = moveEvent.end - 1
+      t.notOk(i1.allocatedToMe(key), 'not allocated to me')
       receivedPeer = moveEvent.to
+      t.notEqual(moveEvent.to.id, i1id, 'id of the other peer')
       moved += moveEvent.end - moveEvent.start
       events++
     })
     boot(t, i1, (i2) => {
       t.deepEqual(receivedPeer, i2.mymeta(), 'peer matches')
-      t.pass('got ' + events + ' moves')
-      t.ok(events > 10, 'some overlap')
-      let movedPercent = Math.round(moved / maxInt * 1000) / 1000
-      t.ok(movedPercent >= 0.40, 'at least 40% is reallocated, got: ' + movedPercent)
-      t.ok(movedPercent <= 1, 'we reallocate at most 100%, got: ' + movedPercent)
-      t.end()
+    })
+
+    i1.on('peerUp', () => {
+      setTimeout(() => {
+        t.pass('got ' + events + ' moves')
+        t.ok(events > 10, 'some overlap')
+        let movedPercent = Math.round(moved / maxInt * 1000) / 1000
+        t.ok(movedPercent >= 0.40, 'at least 40% is reallocated, got: ' + movedPercent)
+        t.ok(movedPercent <= 1, 'we reallocate at most 100%, got: ' + movedPercent)
+        t.end()
+      }, 1000)
     })
   })
 })
