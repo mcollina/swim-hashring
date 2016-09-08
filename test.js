@@ -146,17 +146,12 @@ test('move event', { timeout: 5000 }, (t) => {
     })
     boot(t, i1, (i2) => {
       t.deepEqual(receivedPeer, i2.mymeta(), 'peer matches')
-    })
-
-    i1.on('peerUp', () => {
-      setTimeout(() => {
-        t.pass('got ' + events + ' moves')
-        t.ok(events > 10, 'some overlap')
-        let movedPercent = Math.round(moved / maxInt * 1000) / 1000
-        t.ok(movedPercent >= 0.40, 'at least 40% is reallocated, got: ' + movedPercent)
-        t.ok(movedPercent <= 1, 'we reallocate at most 100%, got: ' + movedPercent)
-        t.end()
-      }, 1000)
+      t.pass('got ' + events + ' moves')
+      t.ok(events > 10, 'some overlap')
+      let movedPercent = Math.round(moved / maxInt * 1000) / 1000
+      t.ok(movedPercent >= 0.40, 'at least 40% is reallocated, got: ' + movedPercent)
+      t.ok(movedPercent <= 1, 'we reallocate at most 100%, got: ' + movedPercent)
+      t.end()
     })
   })
 })
