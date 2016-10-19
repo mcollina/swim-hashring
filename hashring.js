@@ -183,7 +183,7 @@ Hashring.prototype._remove = function (data) {
     return !toRemove
   })
 
-  if (prevRemoved && this._entries[0].peer.id === myid) {
+  if (prevRemoved && this._entries[0] && this._entries[0].peer.id === myid) {
     this.emit('steal', {
       start: lastStart,
       end: prevRemoved.point,
