@@ -33,7 +33,6 @@
   "dependencies": {
     "baseswim": "^1.0.0",
     "binary-search-bounds": "^2.0.3",
-    "farmhash": "^1.1.0",
-    "swim": "^0.3.1"
+    "farmhash": "^1.1.0"
   }
 }
