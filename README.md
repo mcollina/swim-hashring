@@ -50,7 +50,7 @@ Options:
 * `port`: the port the current node will use to advertise itself
   on the swim network. Randomly picked if not specified.
 * `base`: an array of nodes that will be used to boostrap the swim
-  network. The value is what is returned by [`whomai()`](#whomai).
+  network. The value is what is returned by [`whoami()`](#whoami).
 * `client`: if you are writing an hashring client rather than a normal
   peer. Defaults to `false`.
 
