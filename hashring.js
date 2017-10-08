@@ -66,6 +66,9 @@ function Hashring (opts) {
     this._remove(meta)
     this.emit('peerDown', meta)
   })
+  this.swim.on('error', err => {
+    this.emit('error', err)
+  })
 }
 
 inherits(Hashring, EE)
