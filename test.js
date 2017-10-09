@@ -156,6 +156,20 @@ test('move event', { timeout: 5000 }, (t) => {
   })
 })
 
+test('error event', (t) => {
+  t.plan(2)
+
+  const peer = hashring({
+    joinTimeout: 10,
+    base: ['0.0.0.0:7799']
+  })
+  .on('error', err => {
+    t.ok(err instanceof Error)
+    t.equal(err.name, 'JoinFailedError')
+    peer.close()
+  })
+})
+
 test('client', (t) => {
   t.plan(4)
 
