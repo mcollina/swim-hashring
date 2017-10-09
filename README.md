@@ -63,6 +63,7 @@ Events:
   to another peer, relevant keys `start`, `end`, `to`.
 * `'steal'`: when a part of the hashring is stolen by the current peer
   from another peer, relevant keys `start`, `end`, `from`.
+* `'error'`: when an error occurs in the [`swim`](https://github.com/mcollina/baseswim) instance.
 
 <a name="lookup"></a>
 ### instance.lookup(key)
