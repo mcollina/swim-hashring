@@ -210,7 +210,10 @@ Hashring.prototype.lookup = function (key) {
     index = 0
   }
 
-  return this._entries[index].peer
+  if (this._entries[index]) {
+    return this._entries[index].peer
+  }
+  return null
 }
 
 Hashring.prototype.next = function (key, prev) {
@@ -226,7 +229,9 @@ Hashring.prototype.next = function (key, prev) {
 
   prev = prev || []
 
-  let main = this.lookup(point).id
+  const peer = this.lookup(point)
+  if (peer === null) return null
+  let main = peer.id
 
   if (prev.indexOf(main) < 0) {
     prev.push(main)
@@ -259,7 +264,9 @@ Hashring.prototype.peers = function (myself) {
 }
 
 Hashring.prototype.allocatedToMe = function (key) {
-  return this.lookup(key).id === this.whoami()
+  const peer = this.lookup(key)
+  if (peer === null) return false
+  return peer.id === this.whoami()
 }
 
 Hashring.prototype.close = function (cb) {
